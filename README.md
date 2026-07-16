@@ -1,6 +1,6 @@
 # Hotel Booking API
 
-ASP.NET Core Web API for hotel room search and booking using EF Core with SQLite.
+ASP.NET Core Web API for hotel room search and booking using EF Core with MySQL.
 
 ## Business Rules Covered
 
@@ -15,13 +15,22 @@ ASP.NET Core Web API for hotel room search and booking using EF Core with SQLite
 ## Run Locally
 
 ```bash
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS hotel_booking;"
 dotnet restore
 dotnet run --project HotelBookingApi
 ```
 
 Open Swagger at the URL printed by `dotnet run`, followed by `/swagger`.
 
-The API uses SQLite and creates `hotel-booking.db` automatically on startup.
+The API uses MySQL and creates the required tables automatically on startup. Update the `HotelBookingDb` connection string in `appsettings.json`, environment variables, or user secrets if your MySQL user, password, host, or database name is different.
+
+Example environment-variable override:
+
+```bash
+ConnectionStrings__HotelBookingDb="Server=localhost;Port=3306;Database=hotel_booking;User=root;Password=your_password;" dotnet run --project HotelBookingApi
+```
+
+The configured MySQL server version defaults to `8.0.36` and can be changed with `Database:MySqlServerVersion`.
 
 ## Useful Endpoints
 

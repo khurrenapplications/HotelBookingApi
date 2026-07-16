@@ -9,9 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<HotelBookingDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("HotelBookingDb")
-        ?? "Data Source=hotel-booking.db";
+        ?? "Server=localhost;Port=3306;Database=hotel_booking;User=root;Password=;";
+    var mysqlServerVersion = builder.Configuration["Database:MySqlServerVersion"] ?? "8.0.36";
 
-    options.UseSqlite(connectionString);
+    options.UseMySql(connectionString, ServerVersion.Parse(mysqlServerVersion));
 });
 
 builder.Services.AddScoped<BookingService>();
