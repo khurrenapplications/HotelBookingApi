@@ -8,6 +8,7 @@ public sealed class TestDataService(HotelBookingDbContext db)
 {
     public async Task ResetAsync(CancellationToken cancellationToken)
     {
+        // Delete children first so this works consistently even if cascade settings change later.
         db.Bookings.RemoveRange(db.Bookings);
         db.Rooms.RemoveRange(db.Rooms);
         db.Hotels.RemoveRange(db.Hotels);
@@ -16,11 +17,13 @@ public sealed class TestDataService(HotelBookingDbContext db)
 
     public async Task SeedAsync(CancellationToken cancellationToken)
     {
+        // Seeding is idempotent; repeated calls should not duplicate the six-room hotel.
         if (await db.Hotels.AnyAsync(cancellationToken))
         {
             return;
         }
 
+        // The brief requires six rooms across single, double, and deluxe room types.
         var hotel = new Hotel
         {
             Name = "Grand Azure Hotel",

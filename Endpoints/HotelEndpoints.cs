@@ -24,6 +24,7 @@ public static class HotelEndpoints
 
                 if (!string.IsNullOrWhiteSpace(name))
                 {
+                    // Partial name matching keeps the hotel search friendly for API consumers.
                     query = query.Where(hotel => EF.Functions.Like(hotel.Name, $"%{name.Trim()}%"));
                 }
 

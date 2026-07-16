@@ -39,6 +39,7 @@ public static class BookingEndpoints
                 }
                 catch (InvalidOperationException exception)
                 {
+                    // No matching room is a business conflict, not a malformed request.
                     return Results.Conflict(new { error = exception.Message });
                 }
             })

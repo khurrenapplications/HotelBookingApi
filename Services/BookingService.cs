@@ -60,12 +60,14 @@ public sealed class BookingService(HotelBookingDbContext db)
             IsolationLevel.Serializable,
             cancellationToken);
 
+        // The room is selected and booked inside one transaction to reduce race windows.
         var room = await AvailableRoomsQuery(
                 request.HotelId,
                 request.CheckIn,
                 request.CheckOut,
                 request.GuestCount)
             .Where(room => request.PreferredRoomType == null || room.RoomType == request.PreferredRoomType)
+            // Prefer the smallest suitable room so larger rooms remain available for larger parties.
             .OrderBy(room => room.Capacity)
             .ThenBy(room => room.Number)
             .FirstOrDefaultAsync(cancellationToken);
@@ -111,6 +113,7 @@ public sealed class BookingService(HotelBookingDbContext db)
             .Include(room => room.Hotel)
             .Where(room => room.HotelId == hotelId)
             .Where(room => room.Capacity >= guestCount)
+            // Date ranges are [check-in, check-out), so back-to-back stays do not overlap.
             .Where(room => !room.Bookings.Any(booking =>
                 booking.CheckIn < checkOut && checkIn < booking.CheckOut));
     }
@@ -130,6 +133,7 @@ public sealed class BookingService(HotelBookingDbContext db)
 
     private static string GenerateReference()
     {
+        // Short, human-readable references are backed by a unique database index.
         return $"HB-{Guid.NewGuid():N}"[..12].ToUpperInvariant();
     }
 }
