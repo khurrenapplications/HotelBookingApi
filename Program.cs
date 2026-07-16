@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<HotelBookingDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("HotelBookingDb")
-        ?? "Server=localhost;Port=3306;Database=hotel_booking;User=root;Password=;";
+        ?? "Server=localhost;Port=3306;Database=hotel_booking;User=root;Password=Strathmore21;";
     var mysqlServerVersion = builder.Configuration["Database:MySqlServerVersion"] ?? "8.0.36";
 
     // Pomelo needs the server version to generate SQL that matches the target MySQL instance.
