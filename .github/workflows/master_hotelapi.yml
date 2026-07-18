@@ -36,7 +36,7 @@ jobs:
           popd
       
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: Azure/functions-action@v1
         with:
             app-name: HotelAPI
             package: .
