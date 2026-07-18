@@ -1,4 +1,7 @@
-name: Build and deploy .NET API to Azure Web App - HotelAPI
+# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Node.js project to Azure Function App - HotelAPI
 
 on:
   push:
@@ -6,61 +9,65 @@ on:
       - master
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-
 env:
-  DOTNET_VERSION: '8.0.x'
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
+  NODE_VERSION: '22.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
 
 jobs:
   build:
     runs-on: windows-latest
-
+    permissions:
+      contents: read #This is required for actions/checkout
+      
     steps:
-      - name: Checkout
+      - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Setup Node ${{ env.NODE_VERSION }} Environment
+        uses: actions/setup-node@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Restore
-        run: dotnet restore
+      - name: 'Resolve Project Dependencies Using Npm'
+        shell: pwsh
+        run: |
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          npm install
+          npm run build --if-present
+          npm run test --if-present
+          popd
 
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Publish
-        run: dotnet publish -c Release -o ./publish
-
-      - name: Upload artifact
+      - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: dotnet-app
-          path: ./publish
-
+          name: node-app
+          path: .
 
   deploy:
     runs-on: windows-latest
     needs: build
-    
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
     steps:
-      - name: Download artifact
+      - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: dotnet-app
-
+          name: node-app
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_02F3EBF5C50048C2ABC8B16D6C3679A7 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8EE1EF0776F340CEAB8738D615D7F587 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5F9DF4FBD7D442CE9A7C146CFDCF6169 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_CAF36A1C0302474B9DC021FBE91ED738 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9EC051C75E474A52BE1657E931119551 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7A4C49FAAA8B4DB8A2C408929017B07D }}
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
+      - name: 'Run Azure Functions Action'
+        uses: Azure/functions-action@v1
+        id: fa
         with:
-          app-name: HotelAPI
-          package: .
+          app-name: 'HotelAPI'
+          slot-name: 'Production'
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          
