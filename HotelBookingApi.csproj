@@ -8,6 +8,7 @@
   <Nullable>enable</Nullable>
   <ImplicitUsings>enable</ImplicitUsings>
   <SelfContained>false</SelfContained>  <!-- important -->
+  <FunctionsEnableWorkerIndexing>True</FunctionsEnableWorkerIndexing>
 </PropertyGroup>
 
   <ItemGroup>
