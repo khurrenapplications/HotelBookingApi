@@ -1,6 +1,3 @@
-# Docs for the Azure Functions Action:
-# https://github.com/Azure/functions-action
-
 name: Build and deploy dotnet core app to Azure Function App - HotelAPI
 
 on:
@@ -12,6 +9,7 @@ on:
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: './output'
   DOTNET_VERSION: '8.0.x'
+  AZURE_FUNCTIONAPP_NAME: 'HotelAPI' # Change this if your Azure function app name is different
 
 jobs:
   build-and-deploy:
@@ -19,6 +17,7 @@ jobs:
 
     permissions:
       contents: read
+      id-token: write # MANDATORY: Allows GitHub to securely request an OIDC token from Azure
 
     steps:
       - name: Checkout GitHub Action
@@ -34,10 +33,17 @@ jobs:
         run: |
           dotnet publish --configuration Release --output ./output
 
+      # 1. LOG IN SECURELY USING OIDC AND REPOSITORY VARIABLES
+      - name: Log in to Azure via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # 2. DEPLOY APPLICATION USING SHORT-LIVED TOKEN AUTHENTICATION
       - name: Deploy Azure Function
         uses: Azure/functions-action@v1
         with:
-          app-name: HotelAPI
-          slot-name: Production
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
