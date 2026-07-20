@@ -31,7 +31,7 @@ jobs:
       - name: Publish .NET Application
         shell: pwsh
         run: |
-          dotnet publish --configuration Release --output ./output
+          dotnet publish --configuration Release --output ./output --self-contained false
 
       # 1. LOG IN SECURELY USING OIDC AND REPOSITORY VARIABLES
       - name: Log in to Azure via OIDC
