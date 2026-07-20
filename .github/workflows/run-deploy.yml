@@ -9,7 +9,7 @@ on:
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: './output'
   DOTNET_VERSION: '8.0.x'
-  AZURE_FUNCTIONAPP_NAME: 'HotelAPI' # Change this if your Azure function app name is different
+  AZURE_WEBAPP_NAME: 'HotelApp' # Change this if your Azure function app name is different
 
 jobs:
   build-and-deploy:
@@ -28,7 +28,7 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Publish .NET Application
+      - name: Publish Web API
         shell: pwsh
         run: |
           dotnet publish --configuration Release --output ./output --self-contained false
