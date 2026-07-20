@@ -1,4 +1,4 @@
-name: Build and deploy dotnet core app to Azure Function App - HotelAPI
+name: Build and deploy .NET Web API to Azure Web App - HotelAPI
 
 on:
   push:
@@ -7,9 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './output'
   DOTNET_VERSION: '8.0.x'
-  AZURE_FUNCTIONAPP_NAME: 'HotelAPI' # Change this if your Azure function app name is different
+  AZURE_WEBAPP_NAME: 'HotelApp' # Matches your new Web App name
 
 jobs:
   build-and-deploy:
@@ -28,12 +27,15 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Publish .NET Application
+      # 1. Compiles the API and packs it into a flat, explicit zip file
+      - name: Publish and Zip Web API
         shell: pwsh
         run: |
-          dotnet publish --configuration Release --output ./output --self-contained false
+          dotnet restore
+          dotnet publish -c Release -o ./publish_output
+          Compress-Archive -Path ./publish_output/* -DestinationPath ./site_package.zip
 
-      # 1. LOG IN SECURELY USING OIDC AND REPOSITORY VARIABLES
+      # 2. LOG IN SECURELY USING OIDC AND REPOSITORY SECRETS
       - name: Log in to Azure via OIDC
         uses: azure/login@v2
         with:
@@ -41,9 +43,9 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # 2. DEPLOY APPLICATION USING SHORT-LIVED TOKEN AUTHENTICATION
-      - name: Deploy Azure Function
-        uses: Azure/functions-action@v1
+      # 3. DEPLOY VIA DIRECT ZIP TARGETING TO BYPASS PATTERN SEARCH ERRORS
+      - name: Deploy Azure Web App
+        uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: './site_package.zip' # Direct file routing target
