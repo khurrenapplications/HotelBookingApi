@@ -31,7 +31,8 @@ jobs:
       - name: Publish Web API
         shell: pwsh
         run: |
-          dotnet publish --configuration Release --output ./output --self-contained false
+          dotnet restore
+          dotnet publish -c Release -o ./output
 
       # 1. LOG IN SECURELY USING OIDC AND REPOSITORY VARIABLES
       - name: Log in to Azure via OIDC
